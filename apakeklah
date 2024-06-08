@@ -1,0 +1,129 @@
+using System;
+using System.Collections.Generic;
+using System.Security.Cryptography;
+using System.Text;
+
+class Program
+{
+    static Dictionary<string, string> users = new Dictionary<string, string>(); 
+
+    static void Main(string[] args)
+    {
+        while (true)
+        {
+            Console.WriteLine("Selamat datang di aplikasi!");
+            Console.WriteLine("Pilih opsi:");
+            Console.WriteLine("1. Registrasi");
+            Console.WriteLine("2. Login");
+            Console.WriteLine("3. Keluar");
+            Console.Write("Masukkan pilihan Anda: ");
+
+            string input = Console.ReadLine();
+
+            switch (input)
+            {
+                case "1":
+                    Register();
+                    break;
+                case "2":
+                    Login();
+                    break;
+                case "3":
+                    Console.WriteLine("Terima kasih! Sampai jumpa lagi.");
+                    return;
+                default:
+                    Console.WriteLine("Pilihan tidak valid.");
+                    break;
+            }
+
+            Console.WriteLine();
+        }
+    }
+
+    static void Register()
+    {
+        Console.WriteLine("\n-- Registrasi --");
+        Console.Write("Masukkan username: ");
+        string username = Console.ReadLine();
+
+        Console.Write("Masukkan password: ");
+        string password = Console.ReadLine();
+
+        // Validasi input
+        if (!IsValidUsername(username) || !IsValidPassword(password))
+        {
+            Console.WriteLine("Username atau password tidak valid.");
+            return;
+        }
+
+        if (users.ContainsKey(username))
+        {
+            Console.WriteLine("Username sudah digunakan.");
+            return;
+        }
+
+        // Hashing password sebelum disimpan
+        string hashedPassword = HashPassword(password);
+
+        // Menambahkan user baru ke dalam database
+        users.Add(username, hashedPassword);
+
+        Console.WriteLine("Registrasi berhasil.");
+    }
+
+    static void Login()
+    {
+        Console.WriteLine("\n-- Login --");
+        Console.Write("Masukkan username: ");
+        string username = Console.ReadLine();
+
+        Console.Write("Masukkan password: ");
+        string password = Console.ReadLine();
+
+        // Memeriksa keberadaan username dalam database
+        if (!users.ContainsKey(username))
+        {
+            Console.WriteLine("Username tidak ditemukan.");
+            return;
+        }
+
+        // Memeriksa password
+        string hashedPassword = users[username];
+        if (VerifyPassword(password, hashedPassword))
+        {
+            Console.WriteLine("Login berhasil. Selamat datang, " + username + "!");
+        }
+        else
+        {
+            Console.WriteLine("Password salah.");
+        }
+    }
+
+    static bool IsValidUsername(string username)
+    {
+        return username.Length >= 1;
+    }
+
+    static bool IsValidPassword(string password)
+    {
+        // Validasi password sesuai aturan (contoh: panjang minimal 8 karakter)
+        return password.Length >= 5;
+    }
+
+    static string HashPassword(string password)
+    {
+        // Hashing password menggunakan SHA256
+        using (SHA256 sha256 = SHA256.Create())
+        {
+            byte[] hashedBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(password));
+            return BitConverter.ToString(hashedBytes).Replace("-", "").ToLower();
+        }
+    }
+
+    static bool VerifyPassword(string inputPassword, string hashedPassword)
+    {
+        // Memeriksa apakah password input sesuai dengan hashed password yang tersimpan
+        string inputHash = HashPassword(inputPassword);
+        return inputHash == hashedPassword;
+    }
+}
